@@ -1,0 +1,44 @@
+/*
+ * basic.css
+ * Basic Theme Stylesheet
+ */
+
+/* - sidebar - */
+
+div.sidebar {
+    width: 220px;
+    float: left;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-top: 100px;
+    margin-left: -100%;
+    color: #444;
+}
+
+/* - body - */
+
+div.document {
+    max-width: 1140px;
+    margin: 10px auto;
+}
+
+div.documentwrapper {
+    float: left;
+    width: 100%;
+}
+
+div.bodywrapper {
+    margin: 0 0 0 220px;
+}
+
+div.body {
+    min-width: initial;
+    max-width: initial;
+    padding: 0 30px;
+}
+
+/* - fonts - */
+
+div {
+    font-family: 'Martel', serif;
+}
