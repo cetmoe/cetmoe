@@ -106,7 +106,7 @@ celerybeat.pid
 *.sage.py
 
 # exclude api config
-config.py
+website/config.py
 
 # Environments
 .env
