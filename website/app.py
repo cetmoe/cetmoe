@@ -4,6 +4,8 @@ from authlib.integrations.flask_client import OAuth
 from .config import BLIZZ_CLIENT_ID, BLIZZ_CLIENT_SECRET
 from jinja2 import TemplateNotFound
 from markupsafe import escape
+import json
+
 
 app = Flask(__name__)
 app.secret_key = os.urandom(16)
@@ -43,12 +45,17 @@ def authorize():
 
     # you can save the token into database
     profile = blizzard.get('https://eu.api.blizzard.com/profile/user/wow', token=token)
-    return redirect('/')
+    return redirect('/profile')
 
 
 @app.route('/profile')
 def profile():
     if 'token' in session:
+        response = blizzard.get('https://eu.battle.net/oauth/userinfo', token=session['token'])
+        response.raise_for_status()
+        data = response.json()
+        return data['battletag']
+    elif 'token' in session:
         return 'Logged in as %s' % escape(session['token'])
     return 'You are not logged in'
 
