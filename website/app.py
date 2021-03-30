@@ -3,6 +3,7 @@ from flask import Flask, render_template, abort, url_for, redirect, session
 from authlib.integrations.flask_client import OAuth
 from .config import BLIZZ_CLIENT_ID, BLIZZ_CLIENT_SECRET
 from jinja2 import TemplateNotFound
+from markupsafe import escape
 
 app = Flask(__name__)
 app.secret_key = os.urandom(16)
@@ -22,8 +23,6 @@ blizzard = oauth.blizzard
 
 @app.route('/')
 def home():
-    if 'token' in session:
-        print(session['token'])
     try:
         return render_template('index.html')
     except TemplateNotFound:
@@ -49,4 +48,12 @@ def authorize():
 
 @app.route('/profile')
 def profile():
-    return 'profile'
+    if 'token' in session:
+        return 'Logged in as %s' % escape(session['token'])
+    return 'You are not logged in'
+
+
+@app.route('/logout')
+def logout():
+    session.pop('token', None)
+    return redirect('/')
