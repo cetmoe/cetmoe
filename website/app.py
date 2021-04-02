@@ -39,10 +39,10 @@ blizzard = oauth.blizzard
 # OAuth setup WCL
 oauth.register(
     'wcl',
-    client_id=WCL_CLIENT_ID,
-    client_secret=WCL_CLIENT_SECRET,
     authorize_url='https://www.warcraftlogs.com/oauth/authorize',
-    access_token_url='https://www.warcraftlogs.com/oauth/token'
+    access_token_url='https://www.warcraftlogs.com/oauth/token',
+    client_id=WCL_CLIENT_ID,
+    client_secret=WCL_CLIENT_SECRET
 )
 wcl = oauth.wcl
 
@@ -108,7 +108,6 @@ def connect_wcl():
 @app.route('/authorize/wcl')
 def auth_wcl():
     token = wcl.authorize_access_token()
-
     return redirect('/')
 
 @app.route('/logout')
