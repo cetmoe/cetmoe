@@ -1,32 +1,68 @@
-import os
-from flask import Flask, render_template, abort, url_for, redirect, session
-from authlib.integrations.flask_client import OAuth
-from .config import BLIZZ_CLIENT_ID, BLIZZ_CLIENT_SECRET
-from jinja2 import TemplateNotFound
-from markupsafe import escape
 import json
+import os
+import re
 
+from authlib.integrations.flask_client import OAuth
+from flask import Flask, render_template, abort, url_for, redirect, session
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
+from jinja2 import TemplateNotFound
+from flask_login import LoginManager, current_user, login_required, login_user, logout_user
 
+from blizzard import form_url, get_bnet, get_avatar
+from .config import *
+
+# Flask APP Setup
 app = Flask(__name__)
 app.secret_key = os.urandom(16)
-oauth = OAuth(app)
 
+# Flask config setup
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = HEROKU_DATABASE_URI
+# 'postgresql://postgres:cetmoe@localhost:5433/local_cetmoe'
+
+# User session management
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+# OAuth Setup Blizzard
+oauth = OAuth(app)
 oauth.register(
     'blizzard',
     client_id=BLIZZ_CLIENT_ID,
     client_secret=BLIZZ_CLIENT_SECRET,
     authorize_url='https://eu.battle.net/oauth/authorize',
-    access_token_url='https://eu.battle.net/oauth/token',
-    api_base_url='eu.battle.net/'
+    access_token_url='https://eu.battle.net/oauth/token'
 )
-
 blizzard = oauth.blizzard
 
+# OAuth setup WCL
+oauth.register(
+    'wcl',
+    client_id=WCL_CLIENT_ID,
+    client_secret=WCL_CLIENT_SECRET,
+    authorize_url='https://www.warcraftlogs.com/oauth/authorize',
+    access_token_url='https://www.warcraftlogs.com/oauth/token'
+)
+wcl = oauth.wcl
 
+db = SQLAlchemy(app)
+
+# Database
+from .models import User
+
+db.create_all()
+migrate = Migrate(app, db)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(user_id)
+
+# Routes
 @app.route('/')
 def home():
     try:
-        return render_template('index.html')
+        return render_template('base.html')
     except TemplateNotFound:
         abort(404)
 
@@ -41,26 +77,45 @@ def login():
 def authorize():
     token = blizzard.authorize_access_token()
 
-    session['token'] = token
+    bnet = get_bnet('eu', blizzard)
+    if bnet:
+        user = User.query.get(bnet)
+        if user:
+            user.authenticated = True
+            db.session.add(user)
+            db.session.commit()
+            login_user(user, remember=True)
+        else:
+            user = User(bnet)
+            user.authenticated = True
+            db.session.add(user)
+            db.session.commit()
+            login_user(user, remember=True)
+    return redirect('/')
 
-    # you can save the token into database
-    profile = blizzard.get('https://eu.api.blizzard.com/profile/user/wow', token=token)
-    return redirect('/profile')
 
-
-@app.route('/profile')
+@app.route('/profile/')
 def profile():
-    if 'token' in session:
-        response = blizzard.get('https://eu.battle.net/oauth/userinfo', token=session['token'])
-        response.raise_for_status()
-        data = response.json()
-        return data['battletag']
-    elif 'token' in session:
-        return 'Logged in as %s' % escape(session['token'])
-    return 'You are not logged in'
+    return render_template('profile.html')
 
+
+@app.route('/wcl')
+def connect_wcl():
+    redirect_uri = url_for('auth_wcl', _external=True)
+    return wcl.authorize_redirect(redirect_uri)
+
+
+@app.route('/authorize/wcl')
+def auth_wcl():
+    token = wcl.authorize_access_token()
+
+    return redirect('/')
 
 @app.route('/logout')
 def logout():
-    session.pop('token', None)
+    user = current_user
+    user.authenticated = False
+    db.session.add(user)
+    db.session.commit()
+    logout_user()
     return redirect('/')

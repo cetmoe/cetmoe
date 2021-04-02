@@ -3,6 +3,54 @@
  * Basic Theme Stylesheet
  */
 
+.user {
+    font-weight: bold;
+    color: cornflowerblue;
+}
+
+li img {
+    border-radius: 20%;
+    width: 60%;
+    height: 60%;
+}
+
+.tag {
+    color: lightgray;
+}
+
+body {
+    background-color: #fffff8;
+}
+
+nav.navbar {
+    float: right;
+    width: 100%;
+}
+
+nav ul {
+    display: block;
+    margin-block-start: 0;
+    margin-block-end: 0;
+    margin-inline-start: 0;
+    margin-inline-end: 0;
+    padding-inline-start: 0;
+}
+
+nav ul li {
+    display: inline-block;
+    list-style-type: none;
+    text-decoration: none;
+    padding: 2px;
+}
+li a {
+    text-decoration: none;
+}
+
+.right {
+    float: right!important;
+    margin-right: 20px;
+}
+
 /* - sidebar - */
 
 div.sidebar {

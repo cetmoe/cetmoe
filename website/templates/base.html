@@ -1,0 +1,18 @@
+<!doctype html>
+<title>{% block title %}{% endblock %} - cm</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='basic.css') }}">
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Martel:wght@200;300;400;600;700&display=swap" rel="stylesheet">
+
+<nav class="navbar">
+  <div class="right">
+    <ul>
+    {% if current_user.is_autenticated %}
+      <li><span class="user"> <a href="{{ url_for('profile') }}">{{ current_user.get_id() }}</a></span>
+      <li><a href="{{ url_for('logout') }}">Log Out</a>
+    {% else %}
+      <li><a href="{{ url_for('login') }}">Log In</a>
+    {% endif %}
+    </ul>
+  </div>
+</nav>
